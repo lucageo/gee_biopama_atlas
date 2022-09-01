@@ -24,7 +24,7 @@ var out_prot = tmf_t.reduceRegions({
 
  Export.table.toDrive({
   collection: out_prot,
-  description: 'transition_TMF_GAUL',
+  description: 'TMF_pro_'+year,
   fileFormat: 'CSV'
 });
 print (out_prot)
@@ -47,7 +47,7 @@ var out_unprot = tmf_t.reduceRegions({
 
  Export.table.toDrive({
   collection: out_unprot,
-  description: 'transition_TMF_GAUL',
+  description: 'TMF_unpro_'+year,
   fileFormat: 'CSV'
 });
 print (out_unprot)
