@@ -8,7 +8,7 @@ var ft_selected_prot = ft.filterMetadata('protection', 'equals', 'protected');
 var ft_selected_unprot = ft.filterMetadata('protection', 'equals', 'unprotected' );
 
 
-var image = ee.Image("projects/JRC/GSW2019/finalLayers/withPatches/transitionClass1984_2019PatchesV3").clip(ft);
+var image = ee.Image("JRC/GSW1_3/GlobalSurfaceWater").clip(ft);
 
 
 var transitions = image.select('transition');
@@ -51,6 +51,7 @@ Export.table.toDrive({
   description:'Seasonal_prot_'+year,
   fileFormat: 'CSV'
 });
+// export data
 Export.table.toDrive({
   collection: stats_p_unprot,
   description:'Permanent_unprot_'+year,
