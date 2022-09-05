@@ -2,7 +2,7 @@ var display = true;
 var scale = 30; 
 var display = true; 
 var scale = 30;
-var year = '2001'
+var year = '2022'
 var ft = ee.FeatureCollection('projects/ee-biopama/assets/pas_'+year);
 var ft_selected_prot = ft.filterMetadata('protection', 'equals', 'protected');
 var ft_selected_unprot = ft.filterMetadata('protection', 'equals', 'unprotected' );
@@ -44,23 +44,27 @@ var stats_s_unprot = seasonal.reduceRegions({
 Export.table.toDrive({
   collection: stats_p_prot,
   description:'Permanent_prot_'+year,
-  fileFormat: 'CSV'
+  fileFormat: 'CSV',
+  selectors:["isoa3_id","sum"]
 });
 Export.table.toDrive({
   collection: stats_s_prot,
   description:'Seasonal_prot_'+year,
-  fileFormat: 'CSV'
+  fileFormat: 'CSV',
+  selectors:["isoa3_id","sum"]
 });
 // export data
 Export.table.toDrive({
   collection: stats_p_unprot,
   description:'Permanent_unprot_'+year,
-  fileFormat: 'CSV'
+  fileFormat: 'CSV',
+  selectors:["isoa3_id","sum"]
 });
 Export.table.toDrive({
   collection: stats_s_unprot,
   description:'Seasonal_unprot_'+year,
-  fileFormat: 'CSV'
+  fileFormat: 'CSV',
+  selectors:["isoa3_id","sum"]
 });
 print(stats_s_unprot)
 print(stats_p_unprot)
