@@ -3,7 +3,9 @@ fc = forest cover (https://developers.google.com/earth-engine/datasets/catalog/U
 ba = burned areas (https://developers.google.com/earth-engine/datasets/catalog/ESA_CCI_FireCCI_5_1?hl=en)
 fir = number of fires (https://developers.google.com/earth-engine/datasets/catalog/FIRMS)
 ______
-
+w_s = Seasonal Water
+w_p = Permanent Water
+______
 p = protected
 up = unprotected
 ______
