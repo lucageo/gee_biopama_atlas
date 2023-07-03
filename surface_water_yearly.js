@@ -1,8 +1,8 @@
 var gswYearly = ee.ImageCollection("JRC/GSW1_4/YearlyHistory");
 var scale = 30;
-var year = '2022'
+var year = '2001'
 var GoogleDrivefolder = 'water'; //to be changed 
-var filtered = gswYearly.filter(ee.Filter.eq('year', 2021))
+var filtered = gswYearly.filter(ee.Filter.eq('year', 1995))
 var gsw2020 = ee.Image(filtered.first())
 
 var ft = ee.FeatureCollection('projects/ee-biopama/assets/pas_'+year);
@@ -29,7 +29,7 @@ Export.table.toDrive({
   description:'Permanent_'+year,
   fileFormat: 'CSV',
   folder: GoogleDrivefolder,
-  selectors:["isoa3_id","protection","sum"]
+  selectors:["isoa3_id","isoa3_id_1","protection","sum"]
 });
 
 Export.table.toDrive({
@@ -37,5 +37,5 @@ Export.table.toDrive({
   description:'Seasonal_'+year,
   fileFormat: 'CSV',
   folder: GoogleDrivefolder,
-  selectors:["isoa3_id","protection","sum"]
+ selectors:["isoa3_id","isoa3_id_1","protection","sum"]
 });
