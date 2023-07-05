@@ -1,41 +1,64 @@
-var display = true; 
-var scale = 30; 
-var year = '2006'
+var year = '2001'
+var start_year = '2004-01-01'
+var end_year = '2004-12-31'
+
 var ft = ee.FeatureCollection('projects/ee-biopama/assets/pas_'+year);
-var ft_selected_prot = ft.filterMetadata('protection', 'equals', 'protected');
-var ft_selected_unprot = ft.filterMetadata('protection', 'equals', 'unprotected' );
-
-var burnedArea = ee.ImageCollection('ESA/CCI/FireCCI/5_1').filterDate('2006-01-01', '2006-12-31').select('BurnDate');
-var burnedarea_sum = ee.Image(burnedArea.reduce(ee.Reducer.sum()).clip(ft));
-var area = ee.Image.pixelArea();
-var burntArea = burnedarea_sum.multiply(area).rename('burntArea');
-burnedarea_sum = burnedarea_sum.addBands(burntArea);
 
 
-var stats_prot = burntArea.divide(1000000).reduceRegions({
-  'collection': ft_selected_prot,
-  'reducer': ee.Reducer.sum(),
-  'scale': scale
+// Filter fire with more than 50% confidence and add a new band representing areas where confidence of fire > 50%
+var filterConfidence = function(image) {
+  var line_number = image.select('line_number');
+  var confidence = image.select('confidence');
+  var conf_50 = confidence.gt(50).rename('confidence_50');
+  var count_band = line_number.updateMask(conf_50).rename('count');
+  return image.addBands(count_band);
+};
+
+
+var prot_out = ft.map(function(feature) {
+  
+var fire = ee.ImageCollection('FIRMS')
+             .filterBounds(feature.geometry())
+             .filterDate(start_year, end_year);
+  
+var fire_conf = fire.map(filterConfidence);
+var fire_ind_count =fire_conf.map(function(img) {
+  var vals = img.reduceRegion({
+    reducer: ee.Reducer.countDistinct(),
+    scale: 1000,
+    geometry: feature.geometry()
+  });
+  return img.set(vals);
+});
+  var total_fires2 =  fire_ind_count.aggregate_sum('count');
+  
+  return  ee.Feature(null, {result: total_fires2}).set({
+        "iso3": feature.get("isoa3_id"),
+        "protection" : feature.get("protection"),
+        "iso3_" : feature.get("isoa3_id_1")
+    })
 
 });
-var stats_unprot = burntArea.divide(1000000).reduceRegions({
-  'collection': ft_selected_unprot,
-  'reducer': ee.Reducer.sum(),
-  'scale': scale
-
-});
 
 
-var taskParams = { 'folder' : 'burned', 'fileFormat' : 'CSV' };
-
-Export.table(stats_prot, 'burned_prot_'+year, taskParams);
-Export.table(stats_unprot, 'burned_unprot_'+year, taskParams);
+Export.table.toDrive({collection: prot_out, 
+                      folder: 'fires',
+                      description: "Fires_"+year, 
+                      fileNamePrefix: "Fires_"+year,
+                      selectors:["protection","iso3_","iso3","result"]
+                      });
 
 
 
-var style_prot = {'color': 'ffffff', 'width': 1, 'lineType': 'solid', 'fillColor': '94e1aa'}
-Map.addLayer(ft_selected_prot.style(style_prot), {})
-var style_unprot = {'color': 'ffffff', 'width': 1, 'lineType': 'solid', 'fillColor': 'fcb100'}
-Map.addLayer(ft_selected_unprot.style(style_unprot), {})
-var baVis = {min: 1, max: 454798734, palette: ['ff0000']};
-Map.addLayer(burnedarea_sum.select('burntArea'), baVis, 'Burned Area');
+
+var dataset = ee.ImageCollection('FIRMS').filterDate(start_year, end_year);
+var fires = dataset.select('T21');
+var firesVis = {
+  min: 325.0,
+  max: 400.0,
+  palette: ['red', 'orange', 'yellow'],
+};
+Map.addLayer(fires, firesVis, 'Fires');
+
+
+
