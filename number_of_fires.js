@@ -1,11 +1,9 @@
-
-var year = '2006'
-var start_year = '2002-01-01'
-var end_year = '2006-01-01'
+var year = '2001'
+var start_year = '2004-01-01'
+var end_year = '2004-12-31'
 
 var ft = ee.FeatureCollection('projects/ee-biopama/assets/pas_'+year);
-var ft_selected_prot = ft.filterMetadata('protection', 'equals', 'protected');
-var ft_selected_unprot = ft.filterMetadata('protection', 'equals', 'unprotected' );
+
 
 // Filter fire with more than 50% confidence and add a new band representing areas where confidence of fire > 50%
 var filterConfidence = function(image) {
@@ -17,7 +15,7 @@ var filterConfidence = function(image) {
 };
 
 
-var prot_out = ft_selected_prot.map(function(feature) {
+var prot_out = ft.map(function(feature) {
   
 var fire = ee.ImageCollection('FIRMS')
              .filterBounds(feature.geometry())
@@ -35,8 +33,9 @@ var fire_ind_count =fire_conf.map(function(img) {
   var total_fires2 =  fire_ind_count.aggregate_sum('count');
   
   return  ee.Feature(null, {result: total_fires2}).set({
-        "isoa3_id": feature.get("isoa3_id"),
-        "name1" : feature.get("name1")
+        "iso3": feature.get("isoa3_id"),
+        "protection" : feature.get("protection"),
+        "iso3_" : feature.get("isoa3_id_1")
     })
 
 });
@@ -46,40 +45,10 @@ Export.table.toDrive({collection: prot_out,
                       folder: 'fires',
                       description: "Fires_"+year, 
                       fileNamePrefix: "Fires_"+year,
-                      selectors:["isoa3_id","name1","result"]
+                      selectors:["protection","iso3_","iso3","result"]
                       });
 
-var unprot_out = ft_selected_prot.map(function(feature) {
-  
-var fire = ee.ImageCollection('FIRMS')
-             .filterBounds(feature.geometry())
-             .filterDate(start_year, end_year);
-  
-var fire_conf = fire.map(filterConfidence);
-var fire_ind_count =fire_conf.map(function(img) {
-  var vals = img.reduceRegion({
-    reducer: ee.Reducer.countDistinct(),
-    scale: 1000,
-    geometry: feature.geometry()
-  });
-  return img.set(vals);
-});
-  var total_fires2 =  fire_ind_count.aggregate_sum('count');
-  
-  return  ee.Feature(null, {result: total_fires2}).set({
-        "isoa3_id": feature.get("isoa3_id"),
-        "name1" : feature.get("name1")
-    })
 
-});
-
-
-Export.table.toDrive({collection: unprot_out, 
-                      folder: 'fires',
-                      description: "Fires_"+year, 
-                      fileNamePrefix: "Fires_"+year,
-                      selectors:["isoa3_id","name1","result"]
-                      });
 
 
 var dataset = ee.ImageCollection('FIRMS').filterDate(start_year, end_year);
@@ -90,7 +59,6 @@ var firesVis = {
   palette: ['red', 'orange', 'yellow'],
 };
 Map.addLayer(fires, firesVis, 'Fires');
-var style_prot = {'color': 'ffffff', 'width': 1, 'lineType': 'solid', 'fillColor': '94e1aa'}
-Map.addLayer(ft_selected_prot.style(style_prot), {})
-var style_unprot = {'color': 'ffffff', 'width': 1, 'lineType': 'solid', 'fillColor': 'fcb100'}
-Map.addLayer(ft_selected_unprot.style(style_unprot), {})
+
+
+
