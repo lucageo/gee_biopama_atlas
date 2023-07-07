@@ -2,8 +2,7 @@
 
 var year = '2022'
 
-var regions_ = ee.FeatureCollection('projects/ee-biopama/assets/pas_'+year);
-var regions = regions_.filter(ee.Filter.inList('isoa3_id', ee.List(['AGO'])));
+var regions = ee.FeatureCollection('projects/ee-biopama/assets/pas_'+year);
 
 //// Load nightlights image collection
 var collection = ee.ImageCollection('NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG');
@@ -35,10 +34,9 @@ var results = mean_collection.map(function(image) {
 
 //// Flatten the results
 var nl_viirs = ee.FeatureCollection(results).flatten();
-print(nl_viirs)
 
 ////Export the output feature collection to Google Drive as a csv file
-Export.table.toDrive(nl_viirs);
+Export.table.toDrive({collection:nl_viirs, selectors:["protection","avg_rad","isoa3_id","year"]});
 
 
 ////Add the output feature collection to the map
